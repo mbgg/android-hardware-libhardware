@@ -32,6 +32,7 @@
 
 #include <cutils/log.h>
 #include <cutils/atomic.h>
+#include <linux/omapfb.h>
 
 #if HAVE_ANDROID_OS
 #include <linux/fb.h>
@@ -102,8 +103,15 @@ static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
             m->base.unlock(&m->base, buffer); 
             return -errno;
         }
-        m->currentBuffer = buffer;
-        
+
+        unsigned int dummy;
+        if (ioctl(m->framebuffer->fd, OMAPFB_WAITFORGO, &dummy) < 0) {
+            LOGE("OMAPFB_WAITFORGO failed");
+            return 0;
+        }
+
+	m->currentBuffer = buffer;
+
     } else {
         // If we can't do the page_flip, just copy the buffer to the front 
         // FIXME: use copybit HAL instead of memcpy
