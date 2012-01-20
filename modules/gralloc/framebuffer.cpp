@@ -98,6 +98,7 @@ static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
         const size_t offset = hnd->base - m->framebuffer->base;
         m->info.activate = FB_ACTIVATE_VBL;
         m->info.yoffset = offset / m->finfo.line_length;
+#ifdef OMAP_FB
         if (ioctl(m->framebuffer->fd, FBIOPUT_VSCREENINFO, &m->info) == -1) {
             LOGE("FBIOPUT_VSCREENINFO failed");
             m->base.unlock(&m->base, buffer); 
@@ -109,6 +110,22 @@ static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
             LOGE("OMAPFB_WAITFORGO failed");
             return 0;
         }
+#else
+        /* AM335x does not support OMAPFB_WAITFORGO,
+         * use FBIPAN_DISPLAY and FBIO_WAITFORVSYNC instead
+         */
+        if (ioctl(m->framebuffer->fd, FBIOPAN_DISPLAY, &m->info)) {
+            LOGE("ioctl FBIPAN_DISPLAY failed!!\n");
+            m->base.unlock(&m->base, buffer);
+            return -errno;
+        }
+
+        if (ioctl(m->framebuffer->fd, FBIO_WAITFORVSYNC, 0)) {
+            LOGE("FBIO_WAITFORVSYNC failed");
+            m->base.unlock(&m->base, buffer);
+            return -errno;
+        }
+#endif /* #ifdef OMAP_FB */
 
 	m->currentBuffer = buffer;
 
