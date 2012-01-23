@@ -30,4 +30,8 @@ LOCAL_SRC_FILES := 	\
 LOCAL_MODULE := gralloc.default
 LOCAL_CFLAGS:= -DLOG_TAG=\"gralloc\"
 
+ifeq ($(TARGET_PRODUCT),omap3evm)
+LOCAL_CFLAGS  += -DOMAP_FB
+endif
+
 include $(BUILD_SHARED_LIBRARY)
