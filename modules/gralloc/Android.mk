@@ -34,4 +34,8 @@ ifeq ($(TARGET_PRODUCT),omap3evm)
 LOCAL_CFLAGS  += -DOMAP_FB
 endif
 
+ifeq ($(TARGET_PRODUCT),beagleboard)
+LOCAL_CFLAGS  += -DOMAP_FB
+endif
+
 include $(BUILD_SHARED_LIBRARY)
